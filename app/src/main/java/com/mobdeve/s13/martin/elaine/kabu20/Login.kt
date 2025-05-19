@@ -1,5 +1,6 @@
 package com.mobdeve.s13.martin.elaine.kabu20
 
+import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.widget.Button
@@ -20,7 +21,10 @@ class Login : ComponentActivity() {
         setContentView(viewBinding.root)
         applyFont()
 
-
+        viewBinding.SignUpNowTV.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+            finish()
+        }
     }
 
 
