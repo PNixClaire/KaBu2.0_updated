@@ -30,16 +30,26 @@
                 android:id="@+id/Title_TV"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/irish_grover"
                 android:gravity="center_horizontal"
-                android:text="Welcome To" />
+                android:text="Welcome To"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/Title2_TV"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"
+                android:fontFamily="@font/irish_grover"
                 android:gravity="center_horizontal"
-                android:text="KaBu 2.0" />
+                android:shadowColor="#FFC814"
+                android:shadowDx="10"
+                android:shadowDy="8"
+                android:shadowRadius="2"
+                android:text="KaBu 2.0"
+                android:textColor="@color/black"
+                android:textSize="34sp" />
 
             <TextView
                 android:id="@+id/Username_TV"
@@ -47,8 +57,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="5dp"
+                android:fontFamily="@font/lexend_regular"
                 android:gravity="center|center_vertical"
-                android:text="Username" />
+                android:text="Username"
+                android:textColor="@color/black" />
 
             <EditText
                 android:id="@+id/loginUsername_input"
@@ -65,16 +77,20 @@
                 android:paddingTop="5dp"
                 android:paddingBottom="5dp"
                 android:text="Enter Username"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:fontFamily="@font/lexend_regular"
+                android:textColor="@color/black"/>
 
             <TextView
-                android:id="@+id/textView4"
+                android:id="@+id/Password_TV"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="5dp"
                 android:gravity="center|center_horizontal|center_vertical"
-                android:text="Password" />
+                android:text="Password"
+                android:fontFamily="@font/lexend_regular"
+                android:textColor="@color/black"/>
 
             <EditText
                 android:id="@+id/loginPassword_input"
@@ -90,7 +106,9 @@
                 android:inputType="textPassword"
                 android:padding="3dp"
                 android:paddingBottom="5dp"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:fontFamily="@font/lexend_regular"
+                android:textColor="@color/black"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -105,7 +123,9 @@
                     android:layout_weight="1"
                     android:gravity="center|center_horizontal|center_vertical"
                     android:text="Don't have an account yet?"
-                    android:textSize="10sp" />
+                    android:textSize="10sp"
+                    android:fontFamily="@font/lexend_regular"
+                    android:textColor="@color/black"/>
 
                 <TextView
                     android:id="@+id/textView7"
@@ -115,19 +135,23 @@
                     android:layout_weight="1"
                     android:text="Sign up now"
                     android:textSize="10sp"
-                    android:textStyle="bold" />
+                    android:fontFamily="@font/lexend_regular"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
             </LinearLayout>
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/Submit_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="33dp"
                 android:layout_margin="40dp"
                 android:background="@drawable/rounded_corner"
                 android:backgroundTint="#FFC814"
+                android:fontFamily="@font/lexend_regular"
                 android:paddingLeft="30dp"
                 android:paddingRight="30dp"
-                android:text="Button"
+                android:text="Submit"
+                android:textColor="@color/white"
                 android:textSize="12sp" />
 
         </LinearLayout>
