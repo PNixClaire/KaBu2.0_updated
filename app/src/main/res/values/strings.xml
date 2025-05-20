@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Kabu2.0</string>
+
+    <string name="setting_notifications_title">Notifications</string>
+    <string name="setting_voice_options_title">Voice Options</string>
+
+    <string-array name="voice_options_array">
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
 </resources>
