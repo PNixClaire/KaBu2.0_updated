@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFC814"
+    tools:context=".MenuActivity">
+
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginEnd="395dp"
+        android:background="#00FFFFFF"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/baseline_arrow_back_24" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/irish_grover"
+        android:text="Menu"
+        android:textColor="@color/black"
+        android:textSize="23sp"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.364"
+        app:layout_constraintStart_toEndOf="@+id/imageButton"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="75dp"
+        android:layout_marginBottom="75dp"
+        android:background="#F5F5DC"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/Notification_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="75dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="75dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/smooth_corner"
+            android:backgroundTint="#FFC814"
+            android:fontFamily="@font/irish_grover"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:text="Notifications"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/Settings_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="75dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="75dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/smooth_corner"
+            android:backgroundTint="#FFC814"
+            android:fontFamily="@font/irish_grover"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:text="Settings"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/Signout_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="75dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="75dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/smooth_corner"
+            android:backgroundTint="#FFC814"
+            android:fontFamily="@font/irish_grover"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:text="Sign Out"
+            android:textColor="@color/black" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
