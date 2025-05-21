@@ -107,13 +107,15 @@
             android:paddingLeft="15dp"
             android:paddingTop="25dp"
             android:paddingBottom="25dp"
-            android:paddingRight="95dp"/>
+            android:paddingRight="120dp"/>
 
         <Spinner
             android:id="@+id/voice_options_spinner"
-            android:layout_width="match_parent"
+            android:layout_width="131dp"
             android:layout_height="50dp"
-            android:entries="@array/voice_options_array" />
+            android:background="@color/input_text"
+            android:entries="@array/voice_options_array"
+            android:textAlignment="center"/>
 
     </LinearLayout>
 

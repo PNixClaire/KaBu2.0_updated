@@ -21,8 +21,8 @@
         app:srcCompat="@drawable/k_face2" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="405dp"
+        android:layout_height="68dp"
         android:background="#40272623"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -31,15 +31,16 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0">
 
+
         <Button
             android:id="@+id/Menu_btn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="start"
+            android:layout_gravity="center_vertical"
             android:layout_marginRight="50dp"
+            android:layout_marginLeft="15dp"
             android:layout_weight="1"
             android:background="@drawable/baseline_menu_30" />
-
 
         <Button
             android:id="@+id/Mic_btn"
@@ -55,8 +56,9 @@
             android:id="@+id/Vid_btn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="50dp"
+            android:layout_marginRight="15dp"
             android:layout_weight="1"
             android:background="@drawable/outline_videocam_30" />
     </LinearLayout>
