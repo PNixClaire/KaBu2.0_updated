@@ -9,7 +9,7 @@
     tools:context=".MenuActivity">
 
     <ImageButton
-        android:id="@+id/imageButton"
+        android:id="@+id/Back_btn"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_marginEnd="395dp"
@@ -32,7 +32,7 @@
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.364"
-        app:layout_constraintStart_toEndOf="@+id/imageButton"
+        app:layout_constraintStart_toEndOf="@+id/Back_btn"
         app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout

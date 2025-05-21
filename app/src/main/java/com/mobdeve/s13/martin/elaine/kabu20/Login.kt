@@ -25,6 +25,11 @@ class Login : ComponentActivity() {
             startActivity(Intent(this, RegisterActivity::class.java))
             finish()
         }
+
+        viewBinding.SubmitBtn.setOnClickListener {
+            startActivity(Intent(this, HomepageActivity::class.java))
+            finish()
+        }
     }
 
 

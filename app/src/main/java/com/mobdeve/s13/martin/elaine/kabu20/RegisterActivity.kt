@@ -20,6 +20,9 @@ class RegisterActivity : AppCompatActivity() {
             finish()
         }
 
-
+        viewBinding.RegBtn.setOnClickListener {
+            startActivity(Intent(this, Login::class.java))
+            finish()
+        }
     }
 }
