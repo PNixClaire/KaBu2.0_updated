@@ -16,27 +16,27 @@
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="Settings"
-            android:theme="@style/Theme.AppCompat"/>
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
         <activity
             android:name=".NotificationsActivity"
             android:exported="false"
             android:label="Notifications"
-            android:theme="@style/Theme.AppCompat"/>
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
         <activity
             android:name=".MenuActivity"
             android:exported="false"
             android:label="Menu"
-            android:theme="@style/Theme.AppCompat" />
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".HomepageActivity"
             android:exported="false"
             android:label="Homepage"
-            android:theme="@style/Theme.AppCompat" />
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".RegisterActivity"
             android:exported="false"
             android:label="Register"
-            android:theme="@style/Theme.AppCompat" />
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".Login"
             android:exported="true"
