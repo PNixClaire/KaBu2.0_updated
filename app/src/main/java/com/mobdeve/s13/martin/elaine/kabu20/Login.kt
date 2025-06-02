@@ -26,8 +26,13 @@ class Login : ComponentActivity() {
             finish()
         }
 
+//        viewBinding.SubmitBtn.setOnClickListener {
+//            startActivity(Intent(this, HomepageActivity::class.java))
+//            finish()
+//        }
+
         viewBinding.SubmitBtn.setOnClickListener {
-            startActivity(Intent(this, HomepageActivity::class.java))
+            startActivity(Intent(this, VideoCallActivity::class.java))
             finish()
         }
     }
