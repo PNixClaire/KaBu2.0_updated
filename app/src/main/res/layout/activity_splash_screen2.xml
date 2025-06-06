@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/splash_screen_2"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/cream">
@@ -40,58 +41,55 @@
         android:layout_width="141dp"
         android:layout_height="39dp"
 
-        android:layout_marginTop="116dp"
+        android:layout_marginTop="280dp"
         android:fontFamily="@font/irish_grover"
-        android:text="KaBu 2.0"
-        android:textColor="@color/black"
         android:shadowColor="@color/KaBu_yellow"
         android:shadowDx="10"
         android:shadowDy="8"
         android:shadowRadius="2"
+        android:text="KaBu 2.0"
+        android:textColor="@color/black"
         android:textSize="34sp"
-        app:layout_constraintBottom_toTopOf="@+id/imageView5"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.451"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top"
-        app:layout_constraintVertical_bias="0.59" />
+        app:layout_constraintTop_toBottomOf="@+id/top" />
 
     <TextView
         android:id="@+id/loading_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="28dp"
+        android:layout_marginTop="20dp"
         android:fontFamily="@font/lexend_regular"
         android:text="LOADING..."
         android:textColor="@color/black"
         android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@+id/earphones_text"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView5" />
 
     <TextView
         android:id="@+id/earphones_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="184dp"
+        android:layout_marginTop="10dp"
         android:fontFamily="@font/lexend_regular"
         android:text="USE HEADPHONES FOR A BETTER EXPERIENCE"
         android:textColor="@color/black"
         android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@+id/bottom"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loading_text" />
 
     <ImageView
         android:id="@+id/imageView5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/headphone"
         app:layout_constraintBottom_toTopOf="@+id/loading_text"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.477"
         app:layout_constraintStart_toStartOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintTop_toBottomOf="@+id/kaBu_b" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

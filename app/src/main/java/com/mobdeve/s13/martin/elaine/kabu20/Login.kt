@@ -26,13 +26,8 @@ class Login : ComponentActivity() {
             finish()
         }
 
-//        viewBinding.SubmitBtn.setOnClickListener {
-//            startActivity(Intent(this, HomepageActivity::class.java))
-//            finish()
-//        }
-
-        viewBinding.SubmitBtn.setOnClickListener {
-            startActivity(Intent(this, VideoCallActivity::class.java))
+        viewBinding.SubmitBtn.setOnClickListener {//go to second splash page
+            startActivity(Intent(this, SplashScreenActivity2::class.java))
             finish()
         }
     }
