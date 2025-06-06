@@ -18,7 +18,7 @@ class SplashScreenActivity2 : AppCompatActivity() {
 
         viewBinding.splashScreen2.alpha = 0f
         viewBinding.splashScreen2.animate().setDuration(3000).alpha(1f).withEndAction {
-            startActivity(Intent(this, HomepageActivity::class.java))
+            startActivity(Intent(this, VideoCallActivity::class.java))
             finish()
         }
     }
