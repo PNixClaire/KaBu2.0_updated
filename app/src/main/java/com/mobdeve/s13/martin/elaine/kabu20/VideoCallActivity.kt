@@ -21,6 +21,7 @@ class VideoCallActivity : AppCompatActivity() {
 
     private lateinit var viewBinding: ActivityVideoCallBinding
     private lateinit var previewView: PreviewView
+    private var isCameraOn = true
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityVideoCallBinding.inflate(layoutInflater)
@@ -40,13 +41,39 @@ class VideoCallActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), 1001)
         }
 
-
         viewBinding.MenuBtn.setOnClickListener {
             startActivity(Intent(this, MenuActivity::class.java))
             finish()
         }
 
+        viewBinding.VidBtn.setOnClickListener{
+            if(isCameraOn){
+                closeCamera()
+                viewBinding.user.removeView(previewView)
+                viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
+                isCameraOn = false
+            }else{
+                previewView = PreviewView(this)
+                previewView.layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+                viewBinding.user.addView(previewView)
+                startCamera()
+                viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_30)
+                isCameraOn = true
+            }
+        }
 
+
+    }
+
+    private fun closeCamera(){
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+            cameraProvider.unbindAll()
+        }, ContextCompat.getMainExecutor(this))
     }
 
 
