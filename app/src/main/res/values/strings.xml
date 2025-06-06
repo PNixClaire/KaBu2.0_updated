@@ -8,4 +8,5 @@
         <item>Male</item>
         <item>Female</item>
     </string-array>
+    <string name="title_activity_splash_screen2">SplashScreenActivity2</string>
 </resources>

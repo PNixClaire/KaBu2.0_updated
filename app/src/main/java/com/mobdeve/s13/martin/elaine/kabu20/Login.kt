@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
+//import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.mobdeve.s13.martin.elaine.kabu20.databinding.ActivityLoginBinding
@@ -17,6 +18,7 @@ import com.mobdeve.s13.martin.elaine.kabu20.databinding.ActivityLoginBinding
 class Login : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         val viewBinding: ActivityLoginBinding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         applyFont()
@@ -26,8 +28,8 @@ class Login : ComponentActivity() {
             finish()
         }
 
-        viewBinding.SubmitBtn.setOnClickListener {
-            startActivity(Intent(this, HomepageActivity::class.java))
+        viewBinding.SubmitBtn.setOnClickListener {//go to second splash page
+            startActivity(Intent(this, SplashScreenActivity2::class.java))
             finish()
         }
     }
