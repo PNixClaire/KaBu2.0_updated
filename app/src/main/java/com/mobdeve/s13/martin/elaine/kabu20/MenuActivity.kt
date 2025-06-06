@@ -15,7 +15,7 @@ class MenuActivity : AppCompatActivity() {
         setContentView(viewBinding.root)
 
         viewBinding.BackBtn.setOnClickListener {
-            startActivity(Intent(this, HomepageActivity::class.java))
+            startActivity(Intent(this, VideoCallActivity::class.java))
             finish()
         }
 
