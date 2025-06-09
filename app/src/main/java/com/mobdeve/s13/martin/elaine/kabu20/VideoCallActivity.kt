@@ -36,7 +36,6 @@ class VideoCallActivity : AppCompatActivity() {
     private var isMicOn = true
     private var audioPermission = false
 
-    private val RECORD_AUDIO_REQUEST_CODE = 1002
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityVideoCallBinding.inflate(layoutInflater)
@@ -55,16 +54,16 @@ class VideoCallActivity : AppCompatActivity() {
         *  ** Add a permission checker on the startCamera()
         *  ** Fix the logic for camPermission
         * */
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
-            == PackageManager.PERMISSION_GRANTED) {
-            startCamera()
-            camPermission = true
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.CAMERA),
-                1001)
-        }
+//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+//            == PackageManager.PERMISSION_GRANTED) {
+//            startCamera()
+//            camPermission = true
+//        } else {
+//            ActivityCompat.requestPermissions(
+//                this,
+//                arrayOf(android.Manifest.permission.CAMERA),
+//                1001)
+//        }
 
         /* Checks for the app's permission to use the microphone
         * if the app already has a permission to use the microphone,
@@ -79,16 +78,19 @@ class VideoCallActivity : AppCompatActivity() {
         *  ** Add a permission checker on the startAudio()
         *  ** Fix the logic for audioPermission
         * */
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
-            == PackageManager.PERMISSION_GRANTED) {
-            startAudio()
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.RECORD_AUDIO),
-                RECORD_AUDIO_REQUEST_CODE
-            )
-        }
+//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+//            == PackageManager.PERMISSION_GRANTED) {
+//            startAudio()
+//        } else {
+//            ActivityCompat.requestPermissions(
+//                this,
+//                arrayOf(android.Manifest.permission.RECORD_AUDIO),
+//                1002
+//            )
+//        }
+
+        startAudio()
+        startCamera()
 
         /* Menu Button */
         viewBinding.MenuBtn.setOnClickListener {
@@ -109,9 +111,9 @@ class VideoCallActivity : AppCompatActivity() {
 
          viewBinding.MicBtn.setOnClickListener {
              if(isMicOn){
-                 viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_mic_off_24)
+                 stopAudio()
              }else{
-                 viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_mic_30)
+                 startAudio()
              }
          }
 
@@ -123,6 +125,12 @@ class VideoCallActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
             Log.e("Audio", "Microphone permission not granted")
+            viewBinding.MicBtn.setBackgroundResource(R.drawable.outline_mic_off_24)
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.RECORD_AUDIO),
+                1002
+            )
             return
         }
 
@@ -163,17 +171,42 @@ class VideoCallActivity : AppCompatActivity() {
                 }
             }
         }.start()
+        viewBinding.MicBtn.setBackgroundResource(R.drawable.outline_mic_30)
+
     }
 
     private fun stopAudio() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+            Log.e("Audio", "Microphone permission not granted")
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.RECORD_AUDIO),
+                1002
+            )
+            return
+        }
+
         isRecording = false
         if (::audioRecord.isInitialized) {
             audioRecord.stop()
             audioRecord.release()
         }
+        viewBinding.MicBtn.setBackgroundResource(R.drawable.outline_mic_off_24)
     }
 
     private fun closeCamera(){
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+            Log.e("Camera", "Camera permission not granted")
+            viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.CAMERA),
+                1001
+            )
+            return
+        }
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
@@ -187,6 +220,19 @@ class VideoCallActivity : AppCompatActivity() {
 
 
     private fun startCamera() {
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+            Log.e("Camera", "Camera permission not granted")
+            viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.CAMERA),
+                1001
+            )
+            return
+        }
+
         previewView = PreviewView(this)
 
         previewView.layoutParams = FrameLayout.LayoutParams(
@@ -227,11 +273,4 @@ class VideoCallActivity : AppCompatActivity() {
 
     }
 
-    // Optional: handle permission result
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startCamera()
-        }
-    }
 }
