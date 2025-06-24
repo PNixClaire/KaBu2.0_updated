@@ -94,5 +94,21 @@
             android:paddingBottom="20dp"
             android:text="Sign Out"
             android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/ChatBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="75dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="75dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/smooth_corner"
+            android:backgroundTint="#FFC814"
+            android:fontFamily="@font/irish_grover"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:text="Chat Now"
+            android:textColor="@color/black"  />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

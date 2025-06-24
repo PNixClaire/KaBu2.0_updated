@@ -172,7 +172,7 @@ class VideoCallActivity : AppCompatActivity() {
             }
         }.start()
         viewBinding.MicBtn.setBackgroundResource(R.drawable.outline_mic_30)
-
+        isMicOn = true
     }
 
     private fun stopAudio() {
@@ -193,6 +193,7 @@ class VideoCallActivity : AppCompatActivity() {
             audioRecord.release()
         }
         viewBinding.MicBtn.setBackgroundResource(R.drawable.outline_mic_off_24)
+        isMicOn = false
     }
 
     private fun closeCamera(){

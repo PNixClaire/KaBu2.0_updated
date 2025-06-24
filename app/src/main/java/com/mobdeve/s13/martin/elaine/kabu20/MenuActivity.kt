@@ -33,5 +33,11 @@ class MenuActivity : AppCompatActivity() {
             startActivity(Intent(this, Login::class.java))
             finish()
         }
+
+        viewBinding.ChatBtn.setOnClickListener {
+            startActivity(Intent(this, ChatbotActivity::class.java))
+            finish()
+        }
+
     }
 }
