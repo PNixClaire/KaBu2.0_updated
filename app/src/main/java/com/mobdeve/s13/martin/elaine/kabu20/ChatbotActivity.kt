@@ -24,6 +24,7 @@ import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
+import okio.Buffer
 
 class ChatbotActivity : AppCompatActivity() {
 
@@ -79,6 +80,10 @@ class ChatbotActivity : AppCompatActivity() {
         addMessage("KaBu: Hi there! What is your name?")
     }
 
+    fun Buffer.readStringLine(): String? {
+        val index = indexOf('\n'.toByte())
+        return if (index == -1L) null else readString(index + 1, Charsets.UTF_8)
+    }
 
     private fun addText(){
         val messageLayout = findViewById<LinearLayout>(R.id.linearLayout_Messages)
@@ -135,31 +140,67 @@ class ChatbotActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val lines = response.body?.string()?.split("\n") ?: return
+//                val lines = response.body?.string()?.split("\n") ?: return
+//                val fullReply = StringBuilder()
+//
+//                for(line in lines){
+//                    if(line.isNotBlank()){
+//                        try{
+//                            val obj = JSONObject(line)
+//                            val chunk = obj.optJSONObject("message")?.optString("content", "")
+//                            if(!chunk.isNullOrEmpty()) fullReply.append(chunk)
+//                        } catch (_: Exception){}
+//                    }
+//                }
+
+                val source = response.body?.source()
+                source?.request(Long.MAX_VALUE)
+                val buffer = source?.buffer
+
                 val fullReply = StringBuilder()
 
-                for(line in lines){
+                while (true){
+                    val line = buffer?.readStringLine() ?: break
+
                     if(line.isNotBlank()){
                         try{
                             val obj = JSONObject(line)
                             val chunk = obj.optJSONObject("message")?.optString("content", "")
-                            if(!chunk.isNullOrEmpty()) fullReply.append(chunk)
-                        } catch (_: Exception){}
+                            if(!chunk.isNullOrEmpty()){
+                                fullReply.append(chunk)
+                                runOnUiThread{
+                                    binding.textView.text = "KaBu: ${fullReply}"
+                                }
+                            }
+                        } catch (_:  Exception){
+
+                        }
                     }
                 }
 
-                runOnUiThread{
-                    val reply = fullReply.toString().trim()
-                    if(reply.isNotEmpty()){
+                val reply = fullReply.toString().trim()
+                if (reply.isNotEmpty()){
+                    runOnUiThread{
                         addMessage("KaBu: $reply")
-
-                        //add assistant reply to history
                         messageHistory.put(JSONObject().apply {
                             put("role", "assistant")
                             put("content", reply)
                         })
                     }
                 }
+
+//                runOnUiThread{
+//                    val reply = fullReply.toString().trim()
+//                    if(reply.isNotEmpty()){
+//                        addMessage("KaBu: $reply")
+//
+//                        //add assistant reply to history
+//                        messageHistory.put(JSONObject().apply {
+//                            put("role", "assistant")
+//                            put("content", reply)
+//                        })
+//                    }
+//                }
             }
         })
         
