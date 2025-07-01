@@ -25,11 +25,16 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import okio.Buffer
+import java.util.concurrent.TimeUnit
 
 class ChatbotActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityChatbotBinding
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(60, TimeUnit.SECONDS) // Increase connection timeout
+        .readTimeout(120, TimeUnit.SECONDS)   // Increase read timeout
+        .writeTimeout(120, TimeUnit.SECONDS)  // Increase write timeout
+        .build()
     private val messageHistory = JSONArray()
 
     override fun onCreate(savedInstanceState: Bundle?) {
