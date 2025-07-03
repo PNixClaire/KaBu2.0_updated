@@ -3,7 +3,9 @@ package com.mobdeve.s13.martin.elaine.kabu20
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+import android.media.MediaPlayer
 import android.os.Bundle
+import android.util.Log
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -25,6 +27,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import okio.Buffer
+import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
 
 class ChatbotActivity : AppCompatActivity() {
@@ -132,7 +136,7 @@ class ChatbotActivity : AppCompatActivity() {
         }
         
         val request = Request.Builder()
-            .url("http://192.168.100.9:11434/api/chat") //replace with server IP
+            .url("http://192.168.100.87:11434/api/chat") //replace with server IP
             .post(RequestBody.create("application/json".toMediaTypeOrNull(), jsonBody.toString()))
             .build()
 
@@ -191,7 +195,10 @@ class ChatbotActivity : AppCompatActivity() {
                             put("role", "assistant")
                             put("content", reply)
                         })
+//                        speakWithTTS(reply)
                     }
+                    speakWithTTS(reply)
+
                 }
 
 //                runOnUiThread{
@@ -209,5 +216,52 @@ class ChatbotActivity : AppCompatActivity() {
             }
         })
         
+    }
+
+    private fun speakWithTTS(text: String) {
+        val ttsUrl = "http://192.168.100.87:5000/tts"
+
+        val appFilesDir = filesDir.absolutePath
+        val filename = "tts_output.wav"
+
+        val jsonBody = JSONObject().apply {
+            put("text", text)
+            put("voice", "en_US-kathleen-low")
+            put("filename", filename)
+//            put("DIR", appFilesDir)
+        }
+
+        val request = Request.Builder()
+            .url(ttsUrl)
+            .post(jsonBody.toString().toRequestBody("application/json".toMediaTypeOrNull()))
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("TTS", "Failed to fetch audio", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful && response.body != null) {
+                    // Save response to file
+                    val audioFile = File(filesDir, filename)
+                    val inputStream = response.body?.byteStream()
+                    val outputStream = FileOutputStream(audioFile)
+
+                    inputStream?.copyTo(outputStream)
+
+                    runOnUiThread {
+                        val mediaPlayer = MediaPlayer()
+                        try {
+                            mediaPlayer.setDataSource(audioFile.path)
+                            mediaPlayer.prepare()
+                            mediaPlayer.start()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            }
+        })
     }
 }

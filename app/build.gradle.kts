@@ -76,8 +76,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation ("com.google.android.exoplayer:exoplayer:2.18.1")
 
-     val cameraxVersion = "1.3.0-rc01"
+    val cameraxVersion = "1.3.0-rc01"
     implementation("androidx.camera:camera-core:$cameraxVersion")
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
