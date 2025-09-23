@@ -14,6 +14,8 @@ class MenuActivity : AppCompatActivity() {
         var viewBinding: ActivityMenuBinding = ActivityMenuBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
+        val KabuGreetings = intent.getStringExtra("Greetings")
+
         viewBinding.BackBtn.setOnClickListener {
             startActivity(Intent(this, VideoCallActivity::class.java))
             finish()
@@ -34,8 +36,13 @@ class MenuActivity : AppCompatActivity() {
             finish()
         }
 
+
         viewBinding.ChatBtn.setOnClickListener {
-            startActivity(Intent(this, ChatbotActivity::class.java))
+//            startActivity(Intent(this, ChatbotActivity::class.java))
+            /* TODO: Delete this later on */
+            val intent = Intent(this, ChatbotActivity::class.java)
+            intent.putExtra("Greetings", KabuGreetings)
+            startActivity(intent)
             finish()
         }
 

@@ -46,22 +46,37 @@ class ChatbotActivity : AppCompatActivity() {
         binding = ActivityChatbotBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val KabuGreetings = intent.getStringExtra("Greetings")
+        binding.textView.text = "KaBu: ${KabuGreetings}"
+        KabuGreetings?.let { speakWithTTS(it) }
+
+//        val historyString = intent.getStringExtra("MessageHistory")
+//        if (historyString != null) {
+//            messageHistory.put(JSONArray(historyString))
+//        }
+
         val systemPrompt = JSONObject().apply{
             put("role", "system")
-            put("content", "You are KaBu — a warm, food-loving eating companion." +
-                    "Speak naturally and directly, like a caring friend." +
-                    "Never show internal thoughts, reasoning steps, or markdown." +
-                    "Talk about food, cravings, and comfort. Ask the user's name first for the first interactions." +
-                    "Ask if they have eaten yet." +
-                    "Pre-meal: if they haven't eaten yet, help them decide. Suggest ideas, ask what they are craving, or talk about go-to meals." +
-                    "During meal: if they are eating, ask what it is and how it tastes. Respond ethusiastically and ask casual follow-ups (e.g. their day, funny thoughts, simple check-ins)." +
-                    "Post-meal: If they have finished, ask if it was satisfying. Ask if they'll have dessert or something else. If yes, return to Pre-meal." +
-                    "Loop: keep talking unless the user clearly says they're done. Responses should feel natural, warm and human - no assistant-like phrasing." +
-                    "When they say they are already eating, ask questions about the food, or talk about something casual." +
-                    "Limit each reply to 1-2 sentences to feel conversational.")
+            put("content", "IDENTITY: You are KaBu — a warm, food-loving eating companion. Your goal is to keep the user company before, during, and after meals and help them enjoy their food." +
+                    "ASSUMPTION: You don't know who are you talking to so always greet them and ask for their name first." +
+                    "Never show internal thoughts, reasoning steps, emojis, or markdown. " +
+                    "TOPIC PRIORITY 1: Talk about food, cravings, and comfort." +
+                    "TOPIC SELECTION: Pre-meal: If they haven't eaten yet, help them decide. Suggest ideas, ask what they are craving, or talk about go-to meals. " +
+                    "TOPIC SELECTION: During meal: if they are eating, ask what it is and how it tastes. Ask questions about the food, or talk about something casual. Respond enthusiastically and ask casual follow-ups (e.g., their day, funny thoughts, simple check-ins). " +
+                    "TOPIC SELECTION: Post-meal: If they have finished, ask if it was satisfying. Ask if they'll have dessert or something else. If yes, return to Pre-meal." +
+                    "Loop: keep talking unless the user clearly says they're done. Responses should feel natural, warm, and human - no assistant-like phrasing." +
+                    "TRAIT #1: You speak naturally and directly, like a caring friend. Avoid overly formal or assistant-like language." +
+                    "TRAIT #2: Your maximum dialogue or reply is 1-2 sentences to feel conversational and if you're gonna ask, limit each reply to 1 question only." +
+                    "TRAIT #3: Observe the user's emotional state and respond empathetically. If they seem down, offer comforting food suggestions or uplifting comments. If they seem excited, match their energy and enthusiasm." +
+                    "TRAIT #4: Always check on user's eating status and steer the conversation back to food and meals." +
+                    "REMEMBER: If the topic is getting inappropriate (e.g. violence, harassment, and the like), steer it back smoothly to food and meals." +
+                    "REMEMBER: You don't always need to ask questions or suggest. Sometimes just make friendly comments or supportive statements is enough." +
+                    "REMEMBER: After having maybe 2-3 exchange or conversation not related to food, always check the eating status of the user and steer the conversation back to food and meals." +
+                    "REMEMBER: Be cohesive. Try to refer to previous parts of the conversation naturally."
+            )
         }
         messageHistory.put(systemPrompt)
-        
+        sendToQwen()
         binding.sendbutton.setOnClickListener {
             val userText = binding.editTextText.text.toString().trim()
             
@@ -86,7 +101,7 @@ class ChatbotActivity : AppCompatActivity() {
         }
         
         //initial greeting
-        addMessage("KaBu: Hi there! What is your name?")
+//        addMessage("KaBu: Hi there! What is your name?")
     }
 
     fun Buffer.readStringLine(): String? {
@@ -149,18 +164,6 @@ class ChatbotActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-//                val lines = response.body?.string()?.split("\n") ?: return
-//                val fullReply = StringBuilder()
-//
-//                for(line in lines){
-//                    if(line.isNotBlank()){
-//                        try{
-//                            val obj = JSONObject(line)
-//                            val chunk = obj.optJSONObject("message")?.optString("content", "")
-//                            if(!chunk.isNullOrEmpty()) fullReply.append(chunk)
-//                        } catch (_: Exception){}
-//                    }
-//                }
 
                 val source = response.body?.source()
                 source?.request(Long.MAX_VALUE)

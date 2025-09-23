@@ -36,11 +36,16 @@ class VideoCallActivity : AppCompatActivity() {
     private var isMicOn = true
     private var audioPermission = false
 
+    private var KabuGreetings = ""
+    private var historyString = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityVideoCallBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
+//        historyString = intent.getStringExtra("MessageHistory").toString()
+        KabuGreetings = intent.getStringExtra("Greetings").toString()
         /* Checks for the app's permission to use the camera
         * if the app already has a permission to use the camera,
         * it opens the camera instantly (startCamera function)
@@ -94,7 +99,11 @@ class VideoCallActivity : AppCompatActivity() {
 
         /* Menu Button */
         viewBinding.MenuBtn.setOnClickListener {
-            startActivity(Intent(this, MenuActivity::class.java))
+//            startActivity(Intent(this, MenuActivity::class.java))
+            /* TODO: Delete this later on */
+            val intent = Intent(this, MenuActivity::class.java)
+            intent.putExtra("Greetings", KabuGreetings)
+            startActivity(intent)
             finish()
         }
 
