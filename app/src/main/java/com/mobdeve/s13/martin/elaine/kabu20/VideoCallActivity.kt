@@ -8,6 +8,7 @@ import android.media.MediaRecorder
 import android.media.MediaRouter
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -21,239 +22,100 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.mobdeve.s13.martin.elaine.kabu20.databinding.ActivityVideoCallBinding
+import com.mobdeve.s13.martin.elaine.kabu20.voice.VoiceChatManager
+import com.unity3d.player.UnityPlayer
+import android.Manifest
 
-class VideoCallActivity : AppCompatActivity() {
 
-    private lateinit var viewBinding: ActivityVideoCallBinding
-    private lateinit var previewView: PreviewView //Camera preview
+class VideoCallActivity : AppCompatActivity(){
 
-    private lateinit var audioRecord: AudioRecord
-    private var isRecording = false
-
+    private lateinit var binding: ActivityVideoCallBinding
+    private lateinit var previewView: PreviewView
     private var isCameraOn = true
-    private var camPermission = false
+    private var isMicOn = false
 
-    private var isMicOn = true
-    private var audioPermission = false
-
-    private var KabuGreetings = ""
-    private var historyString = ""
+    private lateinit var voice: VoiceChatManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewBinding = ActivityVideoCallBinding.inflate(layoutInflater)
-        setContentView(viewBinding.root)
 
-//        historyString = intent.getStringExtra("MessageHistory").toString()
-        KabuGreetings = intent.getStringExtra("Greetings").toString()
-        /* Checks for the app's permission to use the camera
-        * if the app already has a permission to use the camera,
-        * it opens the camera instantly (startCamera function)
-        * else
-        * it will request for permission
-        * TODO: Fix the permission request.
-        *  If the user did not allow the camera,
-        *  then make sure that the camera
-        *  is CLOSE, and the user won't be
-        *  able to access it.
-        *  ** Add a permission checker on the startCamera()
-        *  ** Fix the logic for camPermission
-        * */
-//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
-//            == PackageManager.PERMISSION_GRANTED) {
-//            startCamera()
-//            camPermission = true
-//        } else {
-//            ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(android.Manifest.permission.CAMERA),
-//                1001)
-//        }
+        binding = ActivityVideoCallBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        /* Checks for the app's permission to use the microphone
-        * if the app already has a permission to use the microphone,
-        * it opens the camera instantly (startAudio function)
-        * else
-        * it will request for permission
-        * TODO: Fix the permission request.
-        *  If the user did not allow the microphone,
-        *  then make sure that the microphone
-        *  is CLOSE, and the user won't be
-        *  able to access it.
-        *  ** Add a permission checker on the startAudio()
-        *  ** Fix the logic for audioPermission
-        * */
-//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
-//            == PackageManager.PERMISSION_GRANTED) {
-//            startAudio()
-//        } else {
-//            ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(android.Manifest.permission.RECORD_AUDIO),
-//                1002
-//            )
-//        }
+        //embed unity animaiton - KaBu's face
+       if(UnityHolder.unityPlayer == null){
+           UnityHolder.unityPlayer = UnityPlayer(this)
+       }
 
-        startAudio()
+        val unityPlayer = UnityHolder.getOrCreatePlayer(this)
+        val unityView = unityPlayer.view
+        (unityView.parent as? ViewGroup)?.removeView(unityView)
+        unityView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+
+        binding.KaBu.addView(unityView)
+        unityPlayer.windowFocusChanged(true)
+        unityPlayer.requestFocus()
+        unityPlayer.resume()
+
+        //camera
         startCamera()
 
-        /* Menu Button */
-        viewBinding.MenuBtn.setOnClickListener {
-//            startActivity(Intent(this, MenuActivity::class.java))
-            /* TODO: Delete this later on */
-            val intent = Intent(this, MenuActivity::class.java)
-            intent.putExtra("Greetings", KabuGreetings)
-            startActivity(intent)
+        //VoiceChatManager
+        voice = VoiceChatManager(this)
+
+        //buttons
+        binding.MenuBtn.setOnClickListener{
+            startActivity(Intent(this, MenuActivity::class.java))
             finish()
         }
 
-        /* Camera Button (on and off) */
-        viewBinding.VidBtn.setOnClickListener{
+        binding.VidBtn.setOnClickListener{
             if(isCameraOn){
                 closeCamera()
                 isCameraOn = false
-            }else{
+            } else {
                 startCamera()
                 isCameraOn = true
             }
         }
 
-         viewBinding.MicBtn.setOnClickListener {
-             if(isMicOn){
-                 stopAudio()
-             }else{
-                 startAudio()
-             }
-         }
-
-
-    }
-
-
-    private fun startAudio() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
-            Log.e("Audio", "Microphone permission not granted")
-            viewBinding.MicBtn.setBackgroundResource(R.drawable.outline_mic_off_24)
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.RECORD_AUDIO),
-                1002
-            )
-            return
-        }
-
-        val sampleRate = 16000
-        val channelConfig = AudioFormat.CHANNEL_IN_MONO
-        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
-
-        val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-
-        if (bufferSize == AudioRecord.ERROR || bufferSize == AudioRecord.ERROR_BAD_VALUE) {
-            Log.e("Audio", "Invalid buffer size")
-            return
-        }
-
-        audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC, // Audio source
-            sampleRate,
-            channelConfig,
-            audioFormat,
-            bufferSize
-        )
-
-        if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
-            Log.e("Audio", "AudioRecord initialization failed")
-            return
-        }
-
-        audioRecord.startRecording()
-        isRecording = true
-
-        val audioBuffer = ByteArray(bufferSize)
-
-        Thread {
-            while (isRecording) {
-                val read = audioRecord.read(audioBuffer, 0, audioBuffer.size)
-                if (read > 0) {
-                    // TODO: Send audioBuffer to STT engine
-                }
+        binding.MicBtn.setOnClickListener{
+            if(!isMicOn){
+                voice.startListening()
+            } else {
+                voice.stoplistening()
+                voice.stopAllAudio()
             }
-        }.start()
-        viewBinding.MicBtn.setBackgroundResource(R.drawable.outline_mic_30)
-        isMicOn = true
-    }
-
-    private fun stopAudio() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
-            Log.e("Audio", "Microphone permission not granted")
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.RECORD_AUDIO),
-                1002
+            isMicOn = !isMicOn
+            binding.MicBtn.setBackgroundResource(
+                if(isMicOn) R.drawable.outline_mic_30
+                else R.drawable.outline_mic_off_24
             )
-            return
         }
-
-        isRecording = false
-        if (::audioRecord.isInitialized) {
-            audioRecord.stop()
-            audioRecord.release()
-        }
-        viewBinding.MicBtn.setBackgroundResource(R.drawable.outline_mic_off_24)
-        isMicOn = false
     }
 
-    private fun closeCamera(){
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            Log.e("Camera", "Camera permission not granted")
-            viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.CAMERA),
-                1001
-            )
-            return
-        }
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            cameraProvider.unbindAll()
-        }, ContextCompat.getMainExecutor(this))
-
-        viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
-
-        viewBinding.user.removeView(previewView)
-    }
-
-
+    //turn camera on/off
     private fun startCamera() {
-
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            Log.e("Camera", "Camera permission not granted")
-            viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.CAMERA),
-                1001
-            )
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 1001)
+            binding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
             return
         }
 
-        previewView = PreviewView(this)
-
-        previewView.layoutParams = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        )
-
-        viewBinding.user.addView(previewView)
+        previewView = PreviewView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+        binding.user.addView(previewView)
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
 
@@ -263,7 +125,7 @@ class VideoCallActivity : AppCompatActivity() {
 
             val imageAnalyzer = ImageAnalysis.Builder().build().also {
                 it.setAnalyzer(ContextCompat.getMainExecutor(this)) { imageProxy ->
-                    // TODO: Send frame to facial emotion recognition API
+                    // Optional: add SER/FER later
                     imageProxy.close()
                 }
             }
@@ -273,14 +135,43 @@ class VideoCallActivity : AppCompatActivity() {
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
+                binding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_30)
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("Camera", "bindToLifecycle failed: ${e.message}")
+                binding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
             }
-
         }, ContextCompat.getMainExecutor(this))
+    }
 
-        viewBinding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_30)
+    private fun closeCamera(){
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+            cameraProvider.unbindAll()
+            binding.VidBtn.setBackgroundResource(R.drawable.outline_videocam_off_24)
+            if(::previewView.isInitialized){
+                binding.user.removeView(previewView)
+            }
+        }, ContextCompat.getMainExecutor(this))
+    }
 
+    //Unity Lifecycle
+    override fun onPause() {
+        super.onPause()
+        UnityHolder.unityPlayer?.pause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        UnityHolder.unityPlayer?.resume()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (UnityHolder.unityPlayer?.view?.parent as? FrameLayout)
+            ?.removeView(UnityHolder.unityPlayer?.view)
+        voice.stoplistening()
+        voice.stopAllAudio()
     }
 
 }
