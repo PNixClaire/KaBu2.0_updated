@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "275101737533",
+    "project_id": "kabu2-84239",
+    "storage_bucket": "kabu2-84239.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:275101737533:android:65b96f497ab2c421dc8054",
+        "android_client_info": {
+          "package_name": "com.mobdeve.s13.martin.elaine.kabu20"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGyO2eaNzQ3M5c33s5qdZGGsqrIHk9di0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

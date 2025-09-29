@@ -94,6 +94,36 @@
                 android:textSize="12sp" />
 
             <TextView
+                android:id="@+id/regEmail_TV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="5dp"
+                android:fontFamily="@font/lexend_regular"
+                android:gravity="center|center_vertical"
+                android:text="Email"
+                android:textColor="@color/black" />
+
+            <EditText
+                android:id="@+id/editTextTextEmailAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="75dp"
+                android:layout_marginRight="75dp"
+                android:background="@drawable/rounded_corner"
+                android:backgroundTint="@color/input_text"
+                android:ems="10"
+                android:fontFamily="@font/lexend_regular"
+                android:gravity="center|center_horizontal|center_vertical"
+                android:inputType="textEmailAddress"
+                android:padding="3dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="Enter Email"
+                android:textColor="@color/black"
+                android:textSize="12sp" />
+
+            <TextView
                 android:id="@+id/regPass_TV"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

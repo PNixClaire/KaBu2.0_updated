@@ -4,9 +4,15 @@
     <string name="setting_notifications_title">Notifications</string>
     <string name="setting_voice_options_title">Voice Options</string>
 
+    <string name="game_view_content_description">Unity Game View</string>
+    <string name="unity_player_activity_title">Unity</string>
+
+
     <string-array name="voice_options_array">
         <item>Male</item>
         <item>Female</item>
     </string-array>
+
     <string name="title_activity_splash_screen2">SplashScreenActivity2</string>
+
 </resources>

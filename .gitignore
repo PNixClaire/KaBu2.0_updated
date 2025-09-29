@@ -1,19 +1,70 @@
+# *.iml
+# .gradle
+# /local.properties
+# /.idea/caches
+# /.idea/libraries
+# /.idea/modules.xml
+# /.idea/workspace.xml
+# /.idea/navEditor.xml
+# /.idea/assetWizardSettings.xml
+# .DS_Store
+# /build
+# /captures
+# .externalNativeBuild
+# .cxx
+# local.properties
+# /.idea/AndroidProjectSystem.xml
+# /.idea/runConfigurations.xml
+# /.idea/vcs.xml
+
+
+# ========================
+# Android Studio / Gradle
+# ========================
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.gradle/
 local.properties
 /.idea/AndroidProjectSystem.xml
 /.idea/runConfigurations.xml
 /.idea/vcs.xml
 /unityLibrary/
+/.idea/
+/build/
+/captures
+.externalNativeBuild/
+.cxx/
+
+# ========================
+# Unity
+# ========================
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+Obj/
+UserSettings/
+MemoryCaptures/
+sysinfo.txt
+
+# ========================
+# Firebase / Google
+# ========================
+# Keep google-services.json if repo is private.
+# Ignore if public GitHub project.
+# google-services.json
+
+# ========================
+# Keystores (don’t upload signing keys!)
+# ========================
+*.jks
+*.keystore
+*.gradle/gradle.properties
+
+# ========================
+# OS / Editor junk
+# ========================
+.DS_Store
+Thumbs.db
+unityLibrary/symbols/arm64-v8a/libil2cpp.so
+unityLibrary/symbols/armeabi-v7a/libil2cpp.so
