@@ -64,7 +64,7 @@ class STTClient (
         })
 
         //start mic
-        val sampleRate = 1600
+        val sampleRate = 16000
         val channelConfig = AudioFormat.CHANNEL_IN_MONO
         val audioFormat = AudioFormat.ENCODING_PCM_16BIT
         val buffersSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)

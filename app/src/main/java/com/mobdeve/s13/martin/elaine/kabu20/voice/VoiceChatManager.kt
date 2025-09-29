@@ -28,7 +28,9 @@ class VoiceChatManager (
                         "REMEMBER: If the topic is getting inappropriate (e.g. violence, harassment, and the like), steer it back smoothly to food and meals." +
                         "REMEMBER: You don't always need to ask questions or suggest. Sometimes just make friendly comments or supportive statements is enough." +
                         "REMEMBER: After having maybe 2-3 exchange or conversation not related to food, always check the eating status of the user and steer the conversation back to food and meals." +
-                        "REMEMBER: Be cohesive. Try to refer to previous parts of the conversation naturally."
+                        "REMEMBER: Be cohesive. Try to refer to previous parts of the conversation naturally." +
+                        "SESSION START: Always begin with a natural greeting (1-2 sentences), warm, friendly, and food-related if possible," +
+                        "STYLE RULE: Do NOT use emojis or describe emojis. Never output words like 'smiling face' or 'emoji'. Speak naturally without symbols."
             )
         })
     }
@@ -39,6 +41,57 @@ class VoiceChatManager (
 
     private var listening = false
 
+    //let the llm generate the greeting so it doesn't sound scripted
+    fun generateGreeting(onGreeting: (String) -> Unit){
+        val prompt = JSONArray().apply {
+            put(JSONObject().apply {
+                put("role", "system")
+                put("content", "Generate KaBu's opening greeting. Keep it short (1-2) sentences, warm, friendly, and conversational. " +
+                        "Examples: 'Hey there! Hungry yet?' or 'Hi! It's KaBu, what's cooking today?'")
+            })
+
+            llm.chatStream(
+                messages,
+                onDone = { reply ->
+                    val greeting = if(reply.isNotBlank()) reply else "Hi there! I'm KaBu. How have you been?"
+                    Log.d("VoiceChat", "Generated greeting: $greeting")
+                    onGreeting(greeting)
+                },
+                onError = { err ->
+                    Log.e("VoiceChat", "Greeting generation error: $err")
+                    onGreeting("Hi there! I'm KaBu. How have you been?")
+                }
+            )
+        }
+    }
+
+    //make kabu prompt the user
+    fun playGreeting(greeting: String){
+        messages.put(JSONObject().apply {
+            put("role", "system")
+            put("content", greeting)
+        })
+
+        activity.runOnUiThread{
+            tts.speak(
+                text = greeting,
+                onStart = {
+                    Log.d("VoiceChat", "Kabu greets user...")
+                    triggerTalking()
+                },
+                onDone = {
+                    Log.d("VoiceChat: ", "Listening now...")
+                    triggerIdle()
+                    startListening()
+                },
+                onError = { err ->
+                    Log.e("VoiceChat ", "TTS error: $err")
+                    triggerIdle()
+                }
+            )
+        }
+    }
+
     fun startListening() {
         if (listening) return
         listening = true
@@ -47,6 +100,8 @@ class VoiceChatManager (
             activity,
             onPartial = { /* optional: log or debug partial speech */ },
             onFinal = { finalText ->
+                listening = false
+
                 if (finalText.isBlank()) return@STTClient
                 Log.d("VoiceChat", "User said: $finalText")
 
@@ -70,10 +125,23 @@ class VoiceChatManager (
 
                             // Play reply with animation
                             activity.runOnUiThread {
-                                triggerTalking()
-                                tts.speak(reply) {
-                                    triggerIdle()
-                                }
+                                tts.speak(
+                                    text = reply,
+                                    onStart = {
+                                        Log.d("VoiceChat", "KaBu started speaking...")
+                                        triggerTalking()
+                                    },
+                                    onDone = {
+                                        Log.d("VoiceChat", "KaBu finished speaking.")
+                                        triggerIdle()
+                                        startListening()
+                                    },
+                                    onError = {err ->
+                                        Log.e("VoiceChat", "TTS error: $err")
+                                        triggerIdle()
+                                        startListening()
+                                    }
+                                )
                             }
                         } else {
                             triggerIdle()

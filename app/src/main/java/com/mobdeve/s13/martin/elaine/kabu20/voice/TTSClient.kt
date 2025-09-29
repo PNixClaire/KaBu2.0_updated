@@ -29,7 +29,9 @@ class TTSClient (
     fun speak(
         text: String,
         voice: String = "en_US-kathleen-low",
-        onError: (String) -> Unit = {}
+        onError: (String) -> Unit = {},
+        onDone: () -> Unit = {},
+        onStart: () -> Unit = {}
     ){
         val filename = "tts_${System.currentTimeMillis()}.wav"
 
@@ -61,26 +63,41 @@ class TTSClient (
                 //store audio
                 val audio = File(context.filesDir, filename)
                 response.body!!.byteStream().use {
-                    input -> FileOutputStream(audio).use {
+                        input -> FileOutputStream(audio).use {
                         out -> input.copyTo(out)
-                    }
+                }
                 }
 
-                //play audio
-                play(audio, onError)
+                //play audio + animation
+                play(audio, onError, onDone, onStart)
             }
         })
     }
 
     //play the new audio
-    private fun play(file: File, onError: (String) -> Unit){
+    private fun play(
+        file: File,
+        onError: (String) -> Unit,
+        onDone: () -> Unit,
+        onStart: () -> Unit
+    ){
         try{
             mediaPlayer?.release()
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(file.path)
-                setOnCompletionListener { it.release() }
-                prepare()
-                start()
+
+                setOnPreparedListener{
+                    onStart()
+                    it.start()
+                }
+
+                setOnCompletionListener {
+                    it.release()
+                    mediaPlayer = null
+                    onDone()
+                }
+
+                prepareAsync()
             }
         } catch (e: Exception){
             onError("TTS play error: ${e.message}")
