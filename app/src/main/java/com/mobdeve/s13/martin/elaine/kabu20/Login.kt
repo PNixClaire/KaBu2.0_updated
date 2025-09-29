@@ -34,15 +34,14 @@ class Login : ComponentActivity() {
         setContentView(viewBinding.root)
         applyFont()
 
+        /** Sign up button **/
         viewBinding.SignUpNowTV.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
             finish()
         }
 
+        /** Login button **/
         viewBinding.SubmitBtn.setOnClickListener {//go to second splash page
-//            startActivity(Intent(this, SplashScreenActivity2::class.java))
-//            finish()
-
             val loginUsername = viewBinding.loginUsernameInput.text.toString()
             val loginPass = viewBinding.loginPasswordInput.text.toString()
             loginUser(loginUsername, loginPass)
@@ -53,7 +52,7 @@ class Login : ComponentActivity() {
         databaseReference = firebaseDatabase.reference.child("Users")
     }
 
-
+    /** Apply font styles **/
     private fun applyFont(){
         // Getting all the preloaded font styles
         val irish_grover: Typeface? = ResourcesCompat.getFont(this, R.font.irish_grover)
@@ -81,6 +80,7 @@ class Login : ComponentActivity() {
 
     }
 
+    /** Checks if user account exist, if it does, it logs in user **/
     private fun loginUser(username: String, password: String){
         val hashedPassword = hashPassword(password)
         databaseReference.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object: ValueEventListener{
@@ -112,6 +112,8 @@ class Login : ComponentActivity() {
         })
     }
 
+
+    /** Hash user password **/
     private fun hashPassword(password: String): String {
         val bytes = password.toByteArray()
         val md = MessageDigest.getInstance("SHA-256")

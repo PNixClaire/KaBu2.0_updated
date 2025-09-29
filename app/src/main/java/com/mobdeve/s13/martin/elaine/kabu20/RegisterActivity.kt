@@ -20,6 +20,7 @@ import java.security.MessageDigest
 
 class RegisterActivity : AppCompatActivity() {
 
+    /** Firebase variable **/
     private lateinit var firebaseDatabase: FirebaseDatabase
     private lateinit var databaseReference: DatabaseReference
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,11 +28,13 @@ class RegisterActivity : AppCompatActivity() {
         val viewBinding: ActivityRegisterBinding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
+        /** Back to the login page button **/
         viewBinding.LoginNowTV.setOnClickListener {
             startActivity(Intent(this, Login::class.java))
             finish()
         }
 
+        /** Register Button **/
         viewBinding.RegBtn.setOnClickListener {
             val registerUsername = viewBinding.regUsernameInput.text.toString()
             val registerPass1 = viewBinding.regPassInput.text.toString()
@@ -49,21 +52,13 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
 
-        //Add/link firebase reference
+        /** Add/link firebase reference **/
         firebaseDatabase = FirebaseDatabase.getInstance("https://kabu2-84239-default-rtdb.asia-southeast1.firebasedatabase.app/")
         databaseReference = firebaseDatabase.reference.child("Users")
 
-        val db = firebaseDatabase.reference
-        db.child("test").setValue("Hello Firebase!")
-            .addOnSuccessListener {
-                Log.d("FirebaseTest", "Write succeeded")
-            }
-            .addOnFailureListener {
-                Log.e("FirebaseTest", "Write failed: ${it.message}")
-            }
-
     }
 
+    /** Add user to the database **/
     private fun registerUser(username: String, password: String, email: String){
         val hashedPassword = hashPassword(password)
         databaseReference.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(object: ValueEventListener{
@@ -87,7 +82,7 @@ class RegisterActivity : AppCompatActivity() {
         })
     }
 
-
+    /** Hash user password **/
     private fun hashPassword(password: String): String {
         val bytes = password.toByteArray()
         val md = MessageDigest.getInstance("SHA-256")
