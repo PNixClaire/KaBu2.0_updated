@@ -1,12 +1,21 @@
 package com.mobdeve.s13.martin.elaine.kabu20.voice
 
 import android.app.Activity
-import android.content.Intent
-import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
-import androidx.compose.ui.input.key.KeyEventType
+import android.media.AudioFormat
+import android.media.AudioRecord
+import android.media.MediaRecorder
+import android.provider.MediaStore.Audio
+import android.util.Log
+import com.google.common.primitives.Bytes
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okio.ByteString
+import java.io.ByteArrayOutputStream
+import java.io.DataOutputStream
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import okio.ByteString.Companion.toByteString
+
 
 //This is for the STT client
 class STTClient (
@@ -15,66 +24,89 @@ class STTClient (
     private val onFinal: (String) -> Unit, //when user finished a phrase
     private val onError: (String) -> Unit
 ){
-    private var sr: SpeechRecognizer? = null
-    private var listening = false
+    private var audioRecord: AudioRecord? = null
+    private var isRecording = false
+    private var webSocket: WebSocket? = null
 
-    /*
-    * - checks if SpeechRecognizer is available
-    * - creates a recognizer and attaches a RecognitionListerner
-    * - Starts listening with a configured RecognizerIntent
-    * */
-    fun start(lang: String = "en-US"){
-        if(listening) return
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(5, TimeUnit.SECONDS)
+        .readTimeout(0, TimeUnit.MILLISECONDS)//keep the connection open
+        .build()
 
-        if(!SpeechRecognizer.isRecognitionAvailable(activity)){
-            onError("SpeechRecognizer not available")
+    fun start(
+        serverUrl: String = "ws://192.168.100.10:6006/ws_asr"
+    ){
+        if (isRecording) return
+
+        //open websocket
+        val request = Request.Builder().url(serverUrl).build()
+        webSocket = client.newWebSocket(request, object : WebSocketListener() {
+            override fun onMessage(ws: WebSocket, text: String) {
+                Log.d("STT", "Message: $text")
+                if (text.contains("\"type\":\"partial\"")) {
+                    val partial = Regex("\"text\":\"(.*?)\"").find(text)?.groupValues?.get(1) ?: ""
+                    if (partial.isNotBlank()) {
+                        activity.runOnUiThread { onPartial(partial) }
+                    }
+                }
+                if (text.contains("\"type\":\"final\"")) {
+                    val final = Regex("\"text\":\"(.*?)\"").find(text)?.groupValues?.get(1) ?: ""
+                    if (final.isNotBlank()) {
+                        activity.runOnUiThread { onFinal(final) }
+                    }
+                }
+            }
+
+            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+                Log.e("STT", "WS error: ${t.message}")
+                activity.runOnUiThread { onError("WS error: ${t.message}") }
+            }
+        })
+
+        //start mic
+        val sampleRate = 1600
+        val channelConfig = AudioFormat.CHANNEL_IN_MONO
+        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+        val buffersSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+
+        //ignore this error
+        audioRecord = AudioRecord(
+            MediaRecorder.AudioSource.MIC,
+            sampleRate,
+            channelConfig,
+            audioFormat,
+            buffersSize
+        )
+
+        if (audioRecord?.state != AudioRecord.STATE_INITIALIZED){
+            onError("AudioRecord init failed")
             return
         }
 
-        sr = SpeechRecognizer.createSpeechRecognizer(activity).apply {
-            setRecognitionListener(object : RecognitionListener{
+        audioRecord?.startRecording()
+        isRecording = true
 
-                override fun onReadyForSpeech(params: Bundle?){}
-                override fun onBeginningOfSpeech() {}
-                override fun onRmsChanged(rmsdB: Float) {}
-                override fun onBufferReceived(buffer: ByteArray?) {}
-                override fun onEndOfSpeech() {}
-                override fun onEvent(eventType: Int, params: Bundle?) {}
-
-                //when recognizer thinks you're mid-sentence, gives early guesses
-                override fun onPartialResults(partialResults: Bundle?) {
-                    val list = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    if (!list.isNullOrEmpty()) onPartial(list[0])
+        Thread{
+            val buffer = ByteArray(buffersSize)
+            while (isRecording) {
+                val read = audioRecord?.read(buffer, 0, buffer.size) ?: 0
+                if (read > 0) {
+                    webSocket?.send(buffer.toByteString(0, read))
                 }
+            }
 
-                //fires when recognizer thinks you're done; gives final text
-                override fun onResults(results: Bundle?) {
-                    val list = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    val text = list?.firstOrNull().orEmpty()
-                    if(text.isNotBlank()) onFinal(text) else onError("No STT result")
-                }
+            webSocket?.send("{\"event\":\"end\"}")
+        }.start()
 
-                override fun onError(error: Int) {
-                    onError("STT error: $error")
-                }
-            })
-        }
-
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang)
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-        }
-
-        sr?.startListening(intent)
-        listening = true
     }
 
-    //clean up and release recognizer
     fun stop(){
-        listening = false
-        sr?.cancel()
-        sr?.destroy()
-        sr = null
+        isRecording = false
+        audioRecord?.stop()
+        audioRecord?.release()
+        audioRecord = null
+        webSocket?.close(100, "bye")
+        webSocket = null
     }
+
 }
