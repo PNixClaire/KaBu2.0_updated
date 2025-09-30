@@ -49,20 +49,44 @@ class VoiceChatManager (
                 put("content", "Generate KaBu's opening greeting. Keep it short (1-2) sentences, warm, friendly, and conversational. " +
                         "Examples: 'Hey there! Hungry yet?' or 'Hi! It's KaBu, what's cooking today?'")
             })
-
-            llm.chatStream(
-                messages,
-                onDone = { reply ->
-                    val greeting = if(reply.isNotBlank()) reply else "Hi there! I'm KaBu. How have you been?"
-                    Log.d("VoiceChat", "Generated greeting: $greeting")
-                    onGreeting(greeting)
-                },
-                onError = { err ->
-                    Log.e("VoiceChat", "Greeting generation error: $err")
-                    onGreeting("Hi there! I'm KaBu. How have you been?")
-                }
-            )
         }
+
+        llm.chatStream(
+            prompt,
+            onDone = { reply ->
+                val greeting = if(reply.isNotBlank()) reply else "Hi there! I'm KaBu. How have you been?"
+                Log.d("VoiceChat", "Generated greeting: $greeting")
+                onGreeting(greeting)
+            },
+            onError = { err ->
+                Log.e("VoiceChat", "STT error: $err")
+
+                activity.runOnUiThread {
+                    // Start sad first, silent
+                    triggerSad()
+                    tts.speak(
+                        text = "Sorry, I didn’t catch that.",
+                        onStart = {
+                            triggerTalking() // switch to talking when voice starts
+                        },
+                        onDone = {
+                            triggerSad()     // show sad briefly
+                            listening = false
+                            activity.window.decorView.postDelayed({
+                                triggerIdle()
+                                startListening()
+                            }, 1000) // 1s delay before idle + listen again
+                        },
+                        onError = { e ->
+                            Log.e("VoiceChat", "TTS error on fallback: $e")
+                            triggerIdle()
+                            startListening()
+                        }
+                    )
+                }
+
+            }
+        )
     }
 
     //make kabu prompt the user
@@ -85,8 +109,32 @@ class VoiceChatManager (
                     startListening()
                 },
                 onError = { err ->
-                    Log.e("VoiceChat ", "TTS error: $err")
-                    triggerIdle()
+                    Log.e("VoiceChat", "STT error: $err")
+
+                    activity.runOnUiThread {
+                        // Start sad first, silent
+                        triggerSad()
+                        tts.speak(
+                            text = "Sorry, I didn’t catch that.",
+                            onStart = {
+                                triggerTalking() // switch to talking when voice starts
+                            },
+                            onDone = {
+                                triggerSad()     // show sad briefly
+                                listening = false
+                                activity.window.decorView.postDelayed({
+                                    triggerIdle()
+                                    startListening()
+                                }, 1000) // 1s delay before idle + listen again
+                            },
+                            onError = { e ->
+                                Log.e("VoiceChat", "TTS error on fallback: $e")
+                                triggerIdle()
+                                startListening()
+                            }
+                        )
+                    }
+
                 }
             )
         }
@@ -102,7 +150,55 @@ class VoiceChatManager (
             onFinal = { finalText ->
                 listening = false
 
-                if (finalText.isBlank()) return@STTClient
+                if (finalText.isBlank()) {
+                    Log.d("VoiceChat", "User said nothing/not recognized")
+
+                    activity.runOnUiThread {
+                        tts.speak(
+                            text = "Sorry, I didn't catch that.",
+                            onStart = {
+                                triggerSad()
+                                triggerTalking()
+                                Log.d("VoiceChat", "KaBu apologizes...")
+                            },
+                            onDone = {
+                                listening = false
+                                triggerIdle()
+                                startListening()
+                            },
+                            onError = { err ->
+                                Log.e("VoiceChat", "STT error: $err")
+
+                                activity.runOnUiThread {
+                                    // Start sad first, silent
+                                    triggerSad()
+                                    tts.speak(
+                                        text = "Sorry, I didn’t catch that.",
+                                        onStart = {
+                                            triggerTalking() // switch to talking when voice starts
+                                        },
+                                        onDone = {
+                                            triggerSad()     // show sad briefly
+                                            listening = false
+                                            activity.window.decorView.postDelayed({
+                                                triggerIdle()
+                                                startListening()
+                                            }, 1000) // 1s delay before idle + listen again
+                                        },
+                                        onError = { e ->
+                                            Log.e("VoiceChat", "TTS error on fallback: $e")
+                                            triggerIdle()
+                                            startListening()
+                                        }
+                                    )
+                                }
+
+                            }
+                        )
+                    }
+                    return@STTClient
+                }
+
                 Log.d("VoiceChat", "User said: $finalText")
 
                 // Save user message
@@ -136,10 +232,33 @@ class VoiceChatManager (
                                         triggerIdle()
                                         startListening()
                                     },
-                                    onError = {err ->
-                                        Log.e("VoiceChat", "TTS error: $err")
-                                        triggerIdle()
-                                        startListening()
+                                    onError = { err ->
+                                        Log.e("VoiceChat", "STT error: $err")
+
+                                        activity.runOnUiThread {
+                                            // Start sad first, silent
+                                            triggerSad()
+                                            tts.speak(
+                                                text = "Sorry, I didn’t catch that.",
+                                                onStart = {
+                                                    triggerTalking() // switch to talking when voice starts
+                                                },
+                                                onDone = {
+                                                    triggerSad()     // show sad briefly
+                                                    listening = false
+                                                    activity.window.decorView.postDelayed({
+                                                        triggerIdle()
+                                                        startListening()
+                                                    }, 1000) // 1s delay before idle + listen again
+                                                },
+                                                onError = { e ->
+                                                    Log.e("VoiceChat", "TTS error on fallback: $e")
+                                                    triggerIdle()
+                                                    startListening()
+                                                }
+                                            )
+                                        }
+
                                     }
                                 )
                             }
@@ -148,14 +267,62 @@ class VoiceChatManager (
                         }
                     },
                     onError = { err ->
-                        Log.e("VoiceChat", "LLM error: $err")
-                        activity.runOnUiThread { triggerIdle() }
+                        Log.e("VoiceChat", "STT error: $err")
+
+                        activity.runOnUiThread {
+                            // Start sad first, silent
+                            triggerSad()
+                            tts.speak(
+                                text = "Sorry, I didn’t catch that.",
+                                onStart = {
+                                    triggerTalking() // switch to talking when voice starts
+                                },
+                                onDone = {
+                                    triggerSad()     // show sad briefly
+                                    listening = false
+                                    activity.window.decorView.postDelayed({
+                                        triggerIdle()
+                                        startListening()
+                                    }, 1000) // 1s delay before idle + listen again
+                                },
+                                onError = { e ->
+                                    Log.e("VoiceChat", "TTS error on fallback: $e")
+                                    triggerIdle()
+                                    startListening()
+                                }
+                            )
+                        }
+
                     }
                 )
             },
             onError = { err ->
                 Log.e("VoiceChat", "STT error: $err")
-                // Could auto-restart STT here if you want
+
+                activity.runOnUiThread {
+                    // Start sad first, silent
+                    triggerSad()
+                    tts.speak(
+                        text = "Sorry, I didn’t catch that.",
+                        onStart = {
+                            triggerTalking() // switch to talking when voice starts
+                        },
+                        onDone = {
+                            triggerSad()     // show sad briefly
+                            listening = false
+                            activity.window.decorView.postDelayed({
+                                triggerIdle()
+                                startListening()
+                            }, 1000) // 1s delay before idle + listen again
+                        },
+                        onError = { e ->
+                            Log.e("VoiceChat", "TTS error on fallback: $e")
+                            triggerIdle()
+                            startListening()
+                        }
+                    )
+                }
+
             }
         ).also { it.start() }
     }
@@ -184,6 +351,14 @@ class VoiceChatManager (
             UnityPlayer.UnitySendMessage("kabu_happy_neutral", "PlayIdle", "")
         } catch (e: Exception){
             Log.e("VoiceChat", "Unity idle failed: ${e.message}")
+        }
+    }
+
+    private fun  triggerSad(){
+        try{
+            UnityPlayer.UnitySendMessage("kabu_happy_neutral", "PlaySad", "")
+        } catch (e: Exception){
+            Log.e("VoiceChat", "Unity sad failed: ${e.message}")
         }
     }
 }

@@ -164,6 +164,12 @@ class VideoCallActivity : AppCompatActivity(){
     override fun onResume() {
         super.onResume()
         UnityHolder.unityPlayer?.resume()
+
+        binding.root.post {
+            voice.generateGreeting { greeting ->
+                voice.playGreeting(greeting)
+            }
+        }
     }
 
     override fun onDestroy() {
