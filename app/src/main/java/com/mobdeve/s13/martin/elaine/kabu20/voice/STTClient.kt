@@ -55,13 +55,7 @@ class STTClient (
                 }
 
                 override fun onError(error: Int) {
-                    val message = when (error){
-                        SpeechRecognizer.ERROR_NO_MATCH -> "No speech recognized"
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
-                        SpeechRecognizer.ERROR_NETWORK -> "Network error"
-                        else -> "STT error code: $error"
-                    }
-                    onError(message)
+                    onError("STT error: $error")
                 }
             })
         }
