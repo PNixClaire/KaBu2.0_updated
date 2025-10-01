@@ -13,7 +13,8 @@ class STTClient (
     private val activity: Activity,
     private val onPartial: (String) -> Unit, //for live captions
     private val onFinal: (String) -> Unit, //when user finished a phrase
-    private val onError: (String) -> Unit
+    private val onError: (String) -> Unit,
+    private val fallbackTTS: ((String, () -> Unit) -> Unit)? = null
 ){
     private var sr: SpeechRecognizer? = null
     private var listening = false
@@ -49,13 +50,23 @@ class STTClient (
 
                 //fires when recognizer thinks you're done; gives final text
                 override fun onResults(results: Bundle?) {
+                    listening = false
                     val list = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     val text = list?.firstOrNull().orEmpty()
-                    if(text.isNotBlank()) onFinal(text) else onError("No STT result")
+                    if(text.isNotBlank()) onFinal(text) else {
+                        fallbackTTS?.invoke("Sorry, I didn't catch that. Can you please repeat that for me?"){
+                            start(lang)
+                        }
+                    }
                 }
 
                 override fun onError(error: Int) {
+                    listening = false
                     onError("STT error: $error")
+
+                    fallbackTTS?.invoke("Sorry, I didn’t catch that. Can you repeat?") {
+                        start(lang)
+                    }
                 }
             })
         }

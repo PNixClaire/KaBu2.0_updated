@@ -27,6 +27,7 @@ class LLMClient (
     //gets the conversation history [JSON] then sends it to Ollama server
     fun chatStream(
         messages: JSONArray, //full conversation history
+        onSentence: (String) -> Unit, //fire as soon as sentence is ready
         onDone: (String) -> Unit, //when full response is finished
         onError: (String) -> Unit
     ){
@@ -80,6 +81,12 @@ class LLMClient (
                             if(chunk.isNotEmpty()) {
                                 sb.append(chunk)
                                 onToken(chunk)
+
+                                if (chunk.contains(".") || chunk.contains("?") || chunk.contains("!")){
+                                    val sentence = sb.toString().trim()
+                                    onSentence(sentence)
+                                    sb.clear()
+                                }
                             }
                         } catch(_: Throwable){
 

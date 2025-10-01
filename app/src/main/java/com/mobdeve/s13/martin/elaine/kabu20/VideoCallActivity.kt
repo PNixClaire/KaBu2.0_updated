@@ -33,6 +33,7 @@ class VideoCallActivity : AppCompatActivity(){
     private lateinit var previewView: PreviewView
     private var isCameraOn = true
     private var isMicOn = false
+    private var greeted = false
 
     private lateinit var voice: VoiceChatManager
 
@@ -65,6 +66,13 @@ class VideoCallActivity : AppCompatActivity(){
 
         //VoiceChatManager
         voice = VoiceChatManager(this)
+
+        if(!greeted){
+            greeted = true
+            binding.root.post {
+                voice.generateGreeting()
+            }
+        }
 
         //buttons
         binding.MenuBtn.setOnClickListener{
@@ -164,12 +172,6 @@ class VideoCallActivity : AppCompatActivity(){
     override fun onResume() {
         super.onResume()
         UnityHolder.unityPlayer?.resume()
-
-        binding.root.post {
-            voice.generateGreeting { greeting ->
-                voice.playGreeting(greeting)
-            }
-        }
     }
 
     override fun onDestroy() {

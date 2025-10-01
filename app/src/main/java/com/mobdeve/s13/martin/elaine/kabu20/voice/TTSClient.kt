@@ -2,6 +2,8 @@ package com.mobdeve.s13.martin.elaine.kabu20.voice
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -9,33 +11,78 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.Error
 import java.util.concurrent.TimeUnit
 
-class TTSClient (
-    private  val context: Context,
+class TTSClient(
+    private val context: Context,
     baseUrl: String = "http://192.168.100.10:5000/tts" //IP
-){
-    //handles HTTP request/response
-    private  val client = OkHttpClient.Builder()
+) {
+    private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
     private val url = baseUrl
     private var mediaPlayer: MediaPlayer? = null
+    private val queue: ArrayDeque<Pair<String, Boolean>> = ArrayDeque()
+    private var isPlaying = false
+    private val handler = Handler(Looper.getMainLooper())
 
-    //sends text to flask server and gets audio back
+    /**
+     * Speak a sentence (enqueue).
+     * @param text The text to speak.
+     * @param isLastSentence True if this is the last sentence of KaBu's reply,
+     *                       so after this we return control to STT.
+     */
     fun speak(
         text: String,
+        isLastSentence: Boolean = false,
         voice: String = "en_US-kathleen-low",
         onError: (String) -> Unit = {},
         onDone: () -> Unit = {},
         onStart: () -> Unit = {}
-    ){
-        val filename = "tts_${System.currentTimeMillis()}.wav"
+    ) {
+        queue.add(text to isLastSentence)
 
-        //text, voice and filename for audio
+        if (!isPlaying) {
+            playNext(onError, onDone, onStart)
+        }
+    }
+
+    private fun playNext(
+        onError: (String) -> Unit,
+        onDone: () -> Unit,
+        onStart: () -> Unit
+    ) {
+        if (queue.isEmpty()) {
+            isPlaying = false
+            return
+        }
+
+        isPlaying = true
+        val (text, isLastSentence) = queue.removeFirst()
+
+        fetchAndPlay(text, "en_US-kathleen-low", onError, {
+            if (queue.isNotEmpty()) {
+                playNext(onError, onDone, onStart)
+            } else {
+                isPlaying = false
+                if (isLastSentence) {
+                    onDone()
+                }
+            }
+        }, onStart)
+
+    }
+
+    private fun fetchAndPlay(
+        text: String,
+        voice: String,
+        onError: (String) -> Unit,
+        onDone: () -> Unit,
+        onStart: () -> Unit
+    ) {
+        val filename = "tts_${System.currentTimeMillis()}.wav"
         val json = JSONObject().apply {
             put("text", text)
             put("voice", voice)
@@ -47,48 +94,43 @@ class TTSClient (
             .post(RequestBody.create("application/json".toMediaTypeOrNull(), json.toString()))
             .build()
 
-        //get audio
-        client.newCall(req).enqueue(object : Callback{
-
+        client.newCall(req).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 onError("TTS network error: ${e.message}")
+                onDone()
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if(!response.isSuccessful || response.body == null){
+                if (!response.isSuccessful || response.body == null) {
                     onError("TTS HTTP error ${response.code}")
+                    onDone()
                     return
                 }
 
-                //store audio
                 val audio = File(context.filesDir, filename)
-                response.body!!.byteStream().use {
-                        input -> FileOutputStream(audio).use {
-                        out -> input.copyTo(out)
-                }
+                response.body!!.byteStream().use { input ->
+                    FileOutputStream(audio).use { out -> input.copyTo(out) }
                 }
 
-                //play audio + animation
                 play(audio, onError, onDone, onStart)
             }
         })
     }
 
-    //play the new audio
     private fun play(
         file: File,
         onError: (String) -> Unit,
         onDone: () -> Unit,
         onStart: () -> Unit
-    ){
-        try{
+    ) {
+        try {
             mediaPlayer?.release()
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(file.path)
 
-                setOnPreparedListener{
+                setOnPreparedListener { mp ->
+                    mp.start()
                     onStart()
-                    it.start()
                 }
 
                 setOnCompletionListener {
@@ -97,17 +139,29 @@ class TTSClient (
                     onDone()
                 }
 
+                setOnErrorListener { _, what, extra ->
+                    val msg = "TTS mediaPlayer error: what=$what extra=$extra"
+                    Log.e("TTS", msg)
+                    mediaPlayer?.release()
+                    mediaPlayer = null
+                    onError(msg)
+                    onDone()
+                    true
+                }
+
                 prepareAsync()
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             onError("TTS play error: ${e.message}")
+            onDone()
         }
     }
 
-    //stop manually - not used yet
-    fun stop(){
+    fun stop() {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
+        queue.clear()
+        isPlaying = false
     }
 }

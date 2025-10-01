@@ -9,6 +9,7 @@ import org.json.JSONObject
 class VoiceChatManager (
     private val activity: Activity
 ){
+    private var greeted = false
     private val messages = JSONArray().apply {
         put(JSONObject().apply {
             put("role", "system")
@@ -41,29 +42,47 @@ class VoiceChatManager (
 
     private var listening = false
 
-    //let the llm generate the greeting so it doesn't sound scripted
-    fun generateGreeting(onGreeting: (String) -> Unit){
-        val prompt = JSONArray().apply {
-            put(JSONObject().apply {
-                put("role", "system")
-                put("content", "Generate KaBu's opening greeting. Keep it short (1-2) sentences, warm, friendly, and conversational. " +
-                        "Examples: 'Hey there! Hungry yet?' or 'Hi! It's KaBu, what's cooking today?'")
-            })
+    fun generateGreeting() {
+        if (greeted) return
+        greeted = true
 
-            llm.chatStream(
-                messages,
-                onDone = { reply ->
-                    val greeting = if(reply.isNotBlank()) reply else "Hi there! I'm KaBu. How have you been?"
-                    Log.d("VoiceChat", "Generated greeting: $greeting")
-                    onGreeting(greeting)
-                },
-                onError = { err ->
-                    Log.e("VoiceChat", "Greeting generation error: $err")
-                    onGreeting("Hi there! I'm KaBu. How have you been?")
+        llm.chatStream(
+            messages,
+            onSentence = { sentence ->
+                activity.runOnUiThread {
+                    val isLast = sentence.endsWith(".") || sentence.endsWith("?") || sentence.endsWith("!")
+                    tts.speak(
+                        text = sentence,
+                        isLastSentence = isLast, // let the last spoken chunk trigger STT
+                        onStart = { Log.d("VoiceChat", "KaBu speaking: $sentence") },
+                        onDone = {
+                            if (isLast) {
+                                Log.d("VoiceChat", "Greeting finished. Listening now...")
+                                startListening()
+                            }
+                        },
+                        onError = { err -> Log.e("VoiceChat", "TTS error: $err") }
+                    )
                 }
-            )
-        }
+            },
+            onDone = { reply ->
+                Log.d("VoiceChat", "Greeting generation complete: $reply")
+                // Do nothing here except logging, sentences already spoken by onSentence
+            },
+            onError = { err ->
+                Log.e("VoiceChat", "Greeting generation error: $err")
+                activity.runOnUiThread {
+                    tts.speak(
+                        text = "Hi there! I'm KaBu. How have you been?",
+                        isLastSentence = true,
+                        onDone = { startListening() }
+                    )
+                }
+            }
+        )
     }
+
+
 
     //make kabu prompt the user
     fun playGreeting(greeting: String){
@@ -87,6 +106,7 @@ class VoiceChatManager (
                 onError = { err ->
                     Log.e("VoiceChat ", "TTS error: $err")
                     triggerIdle()
+                    startListening()
                 }
             )
         }
@@ -98,7 +118,7 @@ class VoiceChatManager (
 
         stt = STTClient(
             activity,
-            onPartial = { /* optional: log or debug partial speech */ },
+            onPartial = { /* optional live captions */ },
             onFinal = { finalText ->
                 listening = false
 
@@ -114,35 +134,42 @@ class VoiceChatManager (
                 // Ask LLM for KaBu's reply
                 llm.chatStream(
                     messages,
+                    onSentence = { sentence ->
+                        activity.runOnUiThread {
+                            val isLast = sentence.endsWith(".") || sentence.endsWith("?") || sentence.endsWith("!")
+                            tts.speak(
+                                text = sentence,
+                                isLastSentence = isLast,
+                                onStart = {
+                                    Log.d("VoiceChat", "KaBu starts speaking sentence...")
+                                    triggerTalking()
+                                },
+                                onDone = {
+                                    Log.d("VoiceChat", "KaBu finished sentence.")
+                                    if (isLast) {
+                                        Log.d("VoiceChat", "Reply done. Listening again...")
+                                        triggerIdle()
+                                        startListening()
+                                    }
+                                },
+                                onError = { err ->
+                                    Log.e("VoiceChat", "TTS error: $err")
+                                    if (isLast) {
+                                        triggerIdle()
+                                        startListening()
+                                    }
+                                },
+                            )
+                        }
+                    },
                     onDone = { reply ->
                         if (reply.isNotBlank()) {
-                            // Save KaBu's reply
+                            // Save KaBu's reply once, but don’t play it again
                             messages.put(JSONObject().apply {
                                 put("role", "assistant")
                                 put("content", reply)
                             })
-                            Log.d("VoiceChat", "KaBu reply: $reply")
-
-                            // Play reply with animation
-                            activity.runOnUiThread {
-                                tts.speak(
-                                    text = reply,
-                                    onStart = {
-                                        Log.d("VoiceChat", "KaBu started speaking...")
-                                        triggerTalking()
-                                    },
-                                    onDone = {
-                                        Log.d("VoiceChat", "KaBu finished speaking.")
-                                        triggerIdle()
-                                        startListening()
-                                    },
-                                    onError = {err ->
-                                        Log.e("VoiceChat", "TTS error: $err")
-                                        triggerIdle()
-                                        startListening()
-                                    }
-                                )
-                            }
+                            Log.d("VoiceChat", "KaBu full reply: $reply")
                         } else {
                             triggerIdle()
                         }
@@ -150,15 +177,29 @@ class VoiceChatManager (
                     onError = { err ->
                         Log.e("VoiceChat", "LLM error: $err")
                         activity.runOnUiThread { triggerIdle() }
-                    }
+                    },
                 )
             },
             onError = { err ->
                 Log.e("VoiceChat", "STT error: $err")
-                // Could auto-restart STT here if you want
+            },fallbackTTS = { line, after ->
+                activity.runOnUiThread {
+                    // Always say the fixed fallback line, not the old reply
+                    tts.speak(
+                        text = line,
+                        isLastSentence = true,
+                        onDone = {
+                            Log.d("VoiceChat", "Fallback spoken: $line")
+                            triggerIdle()
+                            after() // restart listening
+                        },
+                        onStart = { triggerTalking() }
+                    )
+                }
             }
         ).also { it.start() }
     }
+
 
     fun stoplistening(){
         listening = false
