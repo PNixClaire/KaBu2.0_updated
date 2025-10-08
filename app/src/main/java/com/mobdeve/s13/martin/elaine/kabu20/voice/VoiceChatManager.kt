@@ -119,72 +119,43 @@ class VoiceChatManager (
         stt = STTClient(
             activity,
             onPartial = { /* optional live captions */ },
-            onFinal = { finalText ->
+            onFinal = { finalText, audioFile ->
                 listening = false
-
                 if (finalText.isBlank()) return@STTClient
+
                 Log.d("VoiceChat", "User said: $finalText")
 
-                // Save user message
-                messages.put(JSONObject().apply {
-                    put("role", "user")
-                    put("content", finalText)
-                })
+                var emotion = "Unknown"
+                var confidence = 0.0
+                var continued = false
 
-                // Ask LLM for KaBu's reply
-                llm.chatStream(
-                    messages,
-                    onSentence = { sentence ->
-                        activity.runOnUiThread {
-                            val isLast = sentence.endsWith(".") || sentence.endsWith("?") || sentence.endsWith("!")
-                            tts.speak(
-                                text = sentence,
-                                isLastSentence = isLast,
-                                onStart = {
-                                    Log.d("VoiceChat", "KaBu starts speaking sentence...")
-                                    triggerTalking()
-                                },
-                                onDone = {
-                                    Log.d("VoiceChat", "KaBu finished sentence.")
-                                    if (isLast) {
-                                        Log.d("VoiceChat", "Reply done. Listening again...")
-                                        triggerIdle()
-                                        startListening()
-                                    }
-                                },
-                                onError = { err ->
-                                    Log.e("VoiceChat", "TTS error: $err")
-                                    if (isLast) {
-                                        triggerIdle()
-                                        startListening()
-                                    }
-                                },
-                            )
+                // fire SER in parallel
+                audioFile?.let {
+                    SERClient(activity).analyze(it) { emo, conf ->
+                        if (!continued) {
+                            continued = true
+                            emotion = emo
+                            confidence = conf
+                            Log.d("VoiceChat", "Detected emotion: $emo ($conf)")
+                            continueConversation(finalText, emotion, confidence)
                         }
-                    },
-                    onDone = { reply ->
-                        if (reply.isNotBlank()) {
-                            // Save KaBu's reply once, but don’t play it again
-                            messages.put(JSONObject().apply {
-                                put("role", "assistant")
-                                put("content", reply)
-                            })
-                            Log.d("VoiceChat", "KaBu full reply: $reply")
-                        } else {
-                            triggerIdle()
-                        }
-                    },
-                    onError = { err ->
-                        Log.e("VoiceChat", "LLM error: $err")
-                        activity.runOnUiThread { triggerIdle() }
-                    },
-                )
+                    }
+                }
+
+                // fallback if SER is slow (>1.5s)
+                activity.window.decorView.postDelayed({
+                    if (!continued) {
+                        Log.w("VoiceChat", "SER timeout → continuing without emotion")
+                        continued = true
+                        continueConversation(finalText, emotion, confidence)
+                    }
+                }, 1500)
             },
             onError = { err ->
                 Log.e("VoiceChat", "STT error: $err")
-            },fallbackTTS = { line, after ->
+            },
+            fallbackTTS = { line, after ->
                 activity.runOnUiThread {
-                    // Always say the fixed fallback line, not the old reply
                     tts.speak(
                         text = line,
                         isLastSentence = true,
@@ -201,6 +172,7 @@ class VoiceChatManager (
     }
 
 
+
     fun stoplistening(){
         listening = false
         stt?.stop()
@@ -209,6 +181,60 @@ class VoiceChatManager (
     fun stopAllAudio(){
         tts.stop()
         triggerIdle()
+    }
+
+    private fun continueConversation(finalText: String, emotion: String, confidence: Double) {
+        // Save user message with emotion
+        messages.put(JSONObject().apply {
+            put("role", "user")
+            put("content", "$finalText [User sounded $emotion]")
+        })
+
+        llm.chatStream(
+            messages,
+            onSentence = { sentence ->
+                activity.runOnUiThread {
+                    val isLast = sentence.endsWith(".") || sentence.endsWith("?") || sentence.endsWith("!")
+                    tts.speak(
+                        text = sentence,
+                        isLastSentence = isLast,
+                        onStart = {
+                            Log.d("VoiceChat", "KaBu starts speaking: $sentence")
+                            triggerTalking()
+                        },
+                        onDone = {
+                            if (isLast) {
+                                Log.d("VoiceChat", "Reply done → Listening again...")
+                                triggerIdle()
+                                startListening()
+                            }
+                        },
+                        onError = { err ->
+                            Log.e("VoiceChat", "TTS error: $err")
+                            if (isLast) {
+                                triggerIdle()
+                                startListening()
+                            }
+                        }
+                    )
+                }
+            },
+            onDone = { reply ->
+                if (reply.isNotBlank()) {
+                    messages.put(JSONObject().apply {
+                        put("role", "assistant")
+                        put("content", reply)
+                    })
+                    Log.d("VoiceChat", "KaBu full reply: $reply")
+                } else {
+                    triggerIdle()
+                }
+            },
+            onError = { err ->
+                Log.e("VoiceChat", "LLM error: $err")
+                activity.runOnUiThread { triggerIdle() }
+            }
+        )
     }
 
     //UNITY ANIMATION TRIGGERS

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 
 class TTSClient(
     private val context: Context,
-    baseUrl: String = "http://192.168.100.10:5000/tts" //IP
+    baseUrl: String = "http://172.20.10.2:5000/tts" //IP
 ) {
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -83,9 +83,18 @@ class TTSClient(
         onStart: () -> Unit
     ) {
         val filename = "tts_${System.currentTimeMillis()}.wav"
+
+        val prefs = context.getSharedPreferences("KaBuPrefs", Context.MODE_PRIVATE)
+        val selectedVoice = prefs.getString("KaBu_Voice", "Male") ?: "Male"
+        val kabuVoice = if (selectedVoice == "Male") {
+            "en_US-ryan-medium"
+        } else {
+            "en_US-hfc_female-medium"
+        }
+
         val json = JSONObject().apply {
             put("text", text)
-            put("voice", voice)
+            put("voice", kabuVoice)
             put("filename", filename)
         }
 
