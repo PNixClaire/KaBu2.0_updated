@@ -23,7 +23,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.mobdeve.s13.martin.elaine.kabu20.databinding.ActivityVideoCallBinding
 import com.mobdeve.s13.martin.elaine.kabu20.voice.VoiceChatManager
-import com.unity3d.player.UnityPlayer
 import android.Manifest
 
 
@@ -42,24 +41,6 @@ class VideoCallActivity : AppCompatActivity(){
 
         binding = ActivityVideoCallBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        //embed unity animaiton - KaBu's face
-       if(UnityHolder.unityPlayer == null){
-           UnityHolder.unityPlayer = UnityPlayer(this)
-       }
-
-        val unityPlayer = UnityHolder.getOrCreatePlayer(this)
-        val unityView = unityPlayer.view
-        (unityView.parent as? ViewGroup)?.removeView(unityView)
-        unityView.layoutParams = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        )
-
-        binding.KaBu.addView(unityView)
-        unityPlayer.windowFocusChanged(true)
-        unityPlayer.requestFocus()
-        unityPlayer.resume()
 
         //camera
         startCamera()
@@ -161,25 +142,6 @@ class VideoCallActivity : AppCompatActivity(){
                 binding.user.removeView(previewView)
             }
         }, ContextCompat.getMainExecutor(this))
-    }
-
-    //Unity Lifecycle
-    override fun onPause() {
-        super.onPause()
-        UnityHolder.unityPlayer?.pause()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        UnityHolder.unityPlayer?.resume()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        (UnityHolder.unityPlayer?.view?.parent as? FrameLayout)
-            ?.removeView(UnityHolder.unityPlayer?.view)
-        voice.stoplistening()
-        voice.stopAllAudio()
     }
 
 }

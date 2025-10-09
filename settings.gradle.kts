@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Kabu2.0"
 include(":app")
-include(":unityLibrary")

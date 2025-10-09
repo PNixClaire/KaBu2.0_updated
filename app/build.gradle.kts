@@ -22,6 +22,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
     }
 
     buildTypes {
@@ -50,6 +54,10 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+
+        jniLibs{
+            useLegacyPackaging = true
         }
     }
 }
@@ -93,8 +101,6 @@ dependencies {
 
     implementation("com.alphacephei:vosk-android:0.3.32")
     implementation("net.java.dev.jna:jna:5.13.0@aar")
-
-    implementation(project(":unityLibrary"))
 
     implementation(files("../unityLibrary/libs/unity-classes.jar"))
 }

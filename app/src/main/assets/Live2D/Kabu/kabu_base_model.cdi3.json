@@ -1,0 +1,67 @@
+{
+	"Version": 3,
+	"Parameters": [
+		{
+			"Id": "ParamEyeBallX",
+			"GroupId": "",
+			"Name": "ParamEyeBallX"
+		},
+		{
+			"Id": "ParamEyeBallY",
+			"GroupId": "",
+			"Name": "ParamEyeBallY"
+		},
+		{
+			"Id": "ParamEyeLOpen",
+			"GroupId": "",
+			"Name": "ParamEyeLOpen"
+		},
+		{
+			"Id": "ParamEyeROpen",
+			"GroupId": "",
+			"Name": "ParamEyeROpen"
+		},
+		{
+			"Id": "ParamBrowLY",
+			"GroupId": "",
+			"Name": "ParamBrowLY"
+		},
+		{
+			"Id": "ParamBrowLAngle",
+			"GroupId": "",
+			"Name": "ParamBrowLAngle"
+		},
+		{
+			"Id": "ParamBrowRAngle",
+			"GroupId": "",
+			"Name": "ParamBrowRAngle"
+		},
+		{
+			"Id": "ParamMouthOpenY",
+			"GroupId": "",
+			"Name": "ParamMouthOpenY"
+		},
+		{
+			"Id": "ParamSadEyes",
+			"GroupId": "",
+			"Name": "ParamSadEyes"
+		},
+		{
+			"Id": "ParamMouthForm",
+			"GroupId": "",
+			"Name": "ParamMouthForm"
+		},
+		{
+			"Id": "Param",
+			"GroupId": "",
+			"Name": "ParamCheek"
+		},
+		{
+			"Id": "ParamBrowRY",
+			"GroupId": "",
+			"Name": "ParamBrowRY"
+		}
+	],
+	"ParameterGroups": [],
+	"Parts": []
+}

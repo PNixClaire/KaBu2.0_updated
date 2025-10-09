@@ -1,0 +1,61 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "kabu_base_model.moc3",
+		"Textures": [
+			"kabu_base_model.1024/texture_00.png"
+		],
+		"Physics": "kabu_base_model.cdi3.json",
+		"DisplayInfo": "kabu_base_model.cdi3.json",
+		"Motions": {
+			"Idle": [
+				{
+					"File": "motions/kabu_idle.motion3.json"
+				}
+			],
+			"TalkHappy": [
+				{
+					"File": "motions/kabu_talking_happy.motion3.json"
+				}
+			],
+			"TalkNeutral": [
+				{
+					"File": "motions/kabu_talking_neutral.motion3.json"
+				}
+			],
+			"TalkSad": [
+				{
+					"File": "motions/kabu_talking_sad.motion3.json"
+				}
+			],
+			"ReactHappy": [
+				{
+					"File": "motions/kabu_react_happy.motion3.json"
+				}
+			],
+			"ReactSad": [
+				{
+					"File": "motions/kabu_react_sad.motion3.json"
+				}
+			]
+		}
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthOpenY"
+			]
+		}
+	],
+	"HitAreas": []
+}
