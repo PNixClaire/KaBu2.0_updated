@@ -24,6 +24,13 @@ import androidx.core.view.WindowInsetsCompat
 import com.mobdeve.s13.martin.elaine.kabu20.databinding.ActivityVideoCallBinding
 import com.mobdeve.s13.martin.elaine.kabu20.voice.VoiceChatManager
 import android.Manifest
+import android.opengl.GLSurfaceView
+import com.live2d.sdk.cubism.core.ICubismLogger
+
+import com.mobdeve.s13.martin.elaine.kabu20.live2d.Live2DRenderer
+import com.mobdeve.s13.martin.elaine.kabu20.live2d.Live2DView
+import com.live2d.sdk.cubism.framework.CubismFramework
+import com.live2d.sdk.cubism.framework.CubismFrameworkConfig
 
 
 class VideoCallActivity : AppCompatActivity(){
@@ -41,6 +48,23 @@ class VideoCallActivity : AppCompatActivity(){
 
         binding = ActivityVideoCallBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.user.bringToFront()
+        binding.buttonBar.bringToFront()
+
+
+        //live2d thing
+        val option = com.live2d.sdk.cubism.framework.CubismFramework.Option().apply {
+            logFunction = com.live2d.sdk.cubism.core.ICubismLogger { msg ->
+                Log.d("CubismLog", msg)
+            }
+            loggingLevel = com.live2d.sdk.cubism.framework.CubismFrameworkConfig.LogLevel.VERBOSE
+        }
+        com.live2d.sdk.cubism.framework.CubismFramework.startUp(option)
+        com.live2d.sdk.cubism.framework.CubismFramework.initialize()
+
+        val live2DView = binding.live2DView
+        live2DView.startIdleAnimation()
 
         //camera
         startCamera()
@@ -143,5 +167,20 @@ class VideoCallActivity : AppCompatActivity(){
             }
         }, ContextCompat.getMainExecutor(this))
     }
+
+    //framework lifecycle
+    override fun onResume() {
+        super.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        CubismFramework.dispose()
+    }
+
 
 }

@@ -2,7 +2,6 @@ package com.mobdeve.s13.martin.elaine.kabu20.voice
 
 import android.app.Activity
 import android.util.Log
-import com.unity3d.player.UnityPlayer
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -96,16 +95,16 @@ class VoiceChatManager (
                 text = greeting,
                 onStart = {
                     Log.d("VoiceChat", "Kabu greets user...")
-                    triggerTalking()
+
                 },
                 onDone = {
                     Log.d("VoiceChat: ", "Listening now...")
-                    triggerIdle()
+
                     startListening()
                 },
                 onError = { err ->
                     Log.e("VoiceChat ", "TTS error: $err")
-                    triggerIdle()
+
                     startListening()
                 }
             )
@@ -161,10 +160,10 @@ class VoiceChatManager (
                         isLastSentence = true,
                         onDone = {
                             Log.d("VoiceChat", "Fallback spoken: $line")
-                            triggerIdle()
+
                             after() // restart listening
                         },
-                        onStart = { triggerTalking() }
+                        onStart = {  }
                     )
                 }
             }
@@ -180,7 +179,7 @@ class VoiceChatManager (
 
     fun stopAllAudio(){
         tts.stop()
-        triggerIdle()
+
     }
 
     private fun continueConversation(finalText: String, emotion: String, confidence: Double) {
@@ -200,19 +199,19 @@ class VoiceChatManager (
                         isLastSentence = isLast,
                         onStart = {
                             Log.d("VoiceChat", "KaBu starts speaking: $sentence")
-                            triggerTalking()
+
                         },
                         onDone = {
                             if (isLast) {
                                 Log.d("VoiceChat", "Reply done → Listening again...")
-                                triggerIdle()
+
                                 startListening()
                             }
                         },
                         onError = { err ->
                             Log.e("VoiceChat", "TTS error: $err")
                             if (isLast) {
-                                triggerIdle()
+
                                 startListening()
                             }
                         }
@@ -226,31 +225,11 @@ class VoiceChatManager (
                         put("content", reply)
                     })
                     Log.d("VoiceChat", "KaBu full reply: $reply")
-                } else {
-                    triggerIdle()
                 }
             },
             onError = { err ->
                 Log.e("VoiceChat", "LLM error: $err")
-                activity.runOnUiThread { triggerIdle() }
             }
         )
-    }
-
-    //UNITY ANIMATION TRIGGERS
-    private fun triggerTalking(){
-        try{
-            UnityPlayer.UnitySendMessage("kabu_happy_neutral", "PlayTalking", "")
-        } catch (e: Exception){
-            Log.e("VoiceChat", "Unity talking failed: ${e.message}")
-        }
-    }
-
-    private fun triggerIdle(){
-        try{
-            UnityPlayer.UnitySendMessage("kabu_happy_neutral", "PlayIdle", "")
-        } catch (e: Exception){
-            Log.e("VoiceChat", "Unity idle failed: ${e.message}")
-        }
     }
 }

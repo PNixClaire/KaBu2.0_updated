@@ -4,12 +4,18 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
-
 }
 
 android {
     namespace = "com.mobdeve.s13.martin.elaine.kabu20"
     compileSdk = 35
+
+    sourceSets {
+        getByName("main"){
+            jniLibs.srcDirs("src/main/jniLibs")
+            assets.srcDirs("src/main/assets")
+        }
+    }
 
     defaultConfig {
         applicationId = "com.mobdeve.s13.martin.elaine.kabu20"
@@ -102,5 +108,6 @@ dependencies {
     implementation("com.alphacephei:vosk-android:0.3.32")
     implementation("net.java.dev.jna:jna:5.13.0@aar")
 
-    implementation(files("../unityLibrary/libs/unity-classes.jar"))
+    implementation (files("libs/Live2DCubismCore.aar"))
+
 }
