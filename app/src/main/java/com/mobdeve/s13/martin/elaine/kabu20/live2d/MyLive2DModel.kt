@@ -51,8 +51,13 @@ class MyLive2DModel(private val context: Context) : CubismUserModel() {
         val bitmap = BitmapFactory.decodeStream(context.assets.open(path))
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+
         bitmap.recycle()
         return textureId
     }
@@ -94,8 +99,8 @@ class MyLive2DModel(private val context: Context) : CubismUserModel() {
         // 2) Optional framing (zoom + slight up shift)
         modelMatrix?.apply {
             loadIdentity()
-            scale(1.9f, 3f)   // tweak 1.1–1.6 to taste
-            translateY(0.08f)     // tweak -0.2..0.2
+            scale(2.3f, 4f)   // tweak 1.1–1.6 to taste
+            translateY(-0.2f)     // tweak -0.2..0.2
         }
 
         // 3) Apply modelMatrix into projection BEFORE drawing
